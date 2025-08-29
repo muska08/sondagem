@@ -1,0 +1,784 @@
+Put your HTML text here<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sondagem: Qual é o melhor?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .poll-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .poll-header {
+            background: linear-gradient(45deg, #2193b0, #6dd5ed);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .poll-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .poll-header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .poll-content {
+            padding: 30px;
+        }
+
+        .question {
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .question:nth-child(n) {
+            animation-delay: calc(var(--index, 0) * 0.1s);
+        }
+
+        .question-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .option {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .option input[type="radio"] {
+            display: none;
+        }
+
+        .option label {
+            display: block;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .player-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 15px;
+            margin: 0 auto 15px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            color: #666;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .player-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .option label:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .option label:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .option label:hover:before {
+            left: 100%;
+        }
+
+        .option input[type="radio"]:checked + label {
+            background: linear-gradient(45deg, #4caf50, #45a049);
+            color: white;
+            border-color: #4caf50;
+            transform: scale(1.02);
+        }
+
+        .option input[type="radio"]:checked + label .player-name {
+            color: white;
+        }
+
+        .submit-section {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(45deg, #ff5252, #ff7979);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-header {
+            background: linear-gradient(45deg, #00c851, #007e33);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .results-content {
+            padding: 30px;
+        }
+
+        .result-item {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .result-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .result-comparison {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .result-player {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            position: relative;
+        }
+
+        .result-player.winner {
+            background: linear-gradient(45deg, #4caf50, #45a049);
+            color: white;
+        }
+
+        .result-player.winner .result-percentage {
+            color: white;
+        }
+
+        .result-player-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .result-percentage {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2196f3;
+        }
+
+        .result-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .result-bar-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #2196f3, #21cbf3);
+            border-radius: 3px;
+            transition: width 1s ease;
+        }
+
+        .result-player.winner .result-bar-fill {
+            background: linear-gradient(45deg, #fff, #e8f5e8);
+        }
+
+        .total-votes {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background: linear-gradient(45deg, #f57c00, #ef6c00);
+            transform: translateY(-1px);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes countUp {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .count-animation {
+            animation: countUp 0.8s ease forwards;
+        }
+
+        @media (max-width: 768px) {
+            .options {
+                flex-direction: column;
+            }
+            
+            .option {
+                min-width: unset;
+            }
+            
+            .poll-header h1 {
+                font-size: 2em;
+            }
+
+            .result-comparison {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="poll-container">
+        <div class="poll-section" id="pollSection">
+            <div class="poll-header">
+                <h1>⚽ Sondagem</h1>
+                <p>Escolha as suas opções preferidas</p>
+            </div>
+
+            <div class="poll-content">
+                <form id="pollForm">
+                    <div class="question" style="--index: 0">
+                        <h3 class="question-title">1. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q1a" name="q1" value="Rui Silva">
+                                <label for="q1a">
+                                    <div class="player-photo"style="background-image: url('https://www.diarioleiria.pt/wp-content/uploads/sites/7/2025/02/Rui-silva-scp-e1739216348912.webp')"></div>
+                                    <div class="player-name">Rui Silva</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q1b" name="q1" value="Diogo Costa">
+                                <label for="q1b">
+                                    <div class="player-photo" style="background-image: url('https://www.diariodesantotirso.pt/wp-content/uploads/2025/08/diogo-costa-2.jpg')"></div>
+                                    <div class="player-name">Diogo Costa</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 1">
+                        <h3 class="question-title">2. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q2a" name="q2" value="Vagiannidis">
+                                <label for="q2a">
+                                    <div class="player-photo" style="background-image: url('https://thumbs.web.sapo.io/?W=1200&H=627&delay_optim=1&tv=1&crop=center&epic=NTQyUExymKuUt5G3kCOMTBF8Tx0bAKjqyHBvXxKG7fftroWBX7PgWnSb4sDQnHROuuwDPVJGIG4UbJLHF6Y4hGz5Oy78Bd5uwuPlpgl1bjmkjPg=&.jpg')"></div>
+                                    <div class="player-name">Vagiannidis</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q2b" name="q2" value="Alberto Costa">
+                                <label for="q2b">
+                                    <div class="player-photo" style="background-image: url('https://cdn.record.pt/images/2025-07/img_920x518uu2025-07-24-18-49-40-2379061-im-638889798012704479.jpg')"></div>
+                                    <div class="player-name">Alberto Costa</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 2">
+                        <h3 class="question-title">3. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q3a" name="q3" value="Mangas">
+                                <label for="q3a">
+                                    <div class="player-photo" style="background-image: url('https://cdn.record.pt/images/2025-08/img_476x268uu2025-08-15-01-06-22-2383786-im-638908168027988229.jpg')"></div>
+                                    <div class="player-name">Mangas</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q3b" name="q3" value="Francisco Moura">
+                                <label for="q3b">
+                                    <div class="player-photo" style="background-image: url('https://cdn.record.pt/images/2025-04/img_476x268uu2025-04-14-21-05-32-2356310.jpg')"></div>
+                                    <div class="player-name">Francisco Moura</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 3">
+                        <h3 class="question-title">4. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q4a" name="q4" value="Debast">
+                                <label for="q4a">
+                                    <div class="player-photo" style="background-image: url('https://leonino.pt/storage/media-items/images/2024/12/zeno-debast-sporting-club-brugge_20241210103832.webp')"></div>
+                                    <div class="player-name">Debast</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q4b" name="q4" value="Nehuén Pérez">
+                                <label for="q4b">
+                                    <div class="player-photo" style="background-image: url('https://tmssl.akamaized.net//images/foto/galerie/nehuen-perez-porto-2024-1731804584-154362.jpg?lm=1731804596')"></div>
+                                    <div class="player-name">Nehuén Pérez</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 4">
+                        <h3 class="question-title">5. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q5a" name="q5" value="Gonçalo Inácio">
+                                <label for="q5a">
+                                    <div class="player-photo" style="background-image: url('https://i2-prod.liverpool.com/article28461928.ece/ALTERNATES/s615/1_GettyImages-1848357879.jpg')"></div>
+                                    <div class="player-name">Gonçalo Inácio</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q5b" name="q5" value="Bednarek">
+                                <label for="q5b">
+                                    <div class="player-photo" style="background-image: url('https://media-manager.noticiasaominuto.com/1280/naom_689cc891a8ebc.webp?crop_params=eyJsYW5kc2NhcGUiOnsiY3JvcFdpZHRoIjoyNTYxLCJjcm9wSGVpZ2h0IjoxNDQxLCJjcm9wWCI6LTEsImNyb3BZIjoxNjN9LCJwb3J0cmFpdCI6eyJjcm9wV2lkdGgiOjIxNjAsImNyb3BIZWlnaHQiOjM4NDAsImNyb3BYIjozNzcsImNyb3BZIjowfX0=')"></div>
+                                    <div class="player-name">Bednarek</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 5">
+                        <h3 class="question-title">6. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q6a" name="q6" value="Hjulmand">
+                                <label for="q6a">
+                                    <div class="player-photo" style="background-image: url('https://www.zerozero.pt/wimg/n712361b/1155635-sporting-morten-hjulmand-nomeado-para-melhor-jogador-do-ano-.jpg')"></div>
+                                    <div class="player-name">Hjulmand</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q6b" name="q6" value="Alan Varela">
+                                <label for="q6b">
+                                    <div class="player-photo" style="background-image: url('https://sportal365images.com/process/smp-images-production/abola.pt/18042025/2a33bc6d-1e94-48ed-a82d-e0285d628ed7.jpeg?operations=scale(860:574)')"></div>
+                                    <div class="player-name">Alan Varela</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 6">
+                        <h3 class="question-title">7. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q7a" name="q7" value="Kochorashvili">
+                                <label for="q7a">
+                                    <div class="player-photo" style="background-image: url('https://img.iol.pt/image/id/686ab3ecd34e3f0baea031bc/')"></div>
+                                    <div class="player-name">Kochorashvili</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q7b" name="q7" value="Froholdt">
+                                <label for="q7b">
+                                    <div class="player-photo" style="background-image: url('https://cdn-images.rtp.pt/icm/noticias/images/11/11f8ea984f9ca5a58763edabae899be7?w=860&q=90&rect=18,0,1140,625')"></div>
+                                    <div class="player-name">Froholdt</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 7">
+                        <h3 class="question-title">8. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q8a" name="q8" value="Pedro Gonçalves">
+                                <label for="q8a">
+                                    <div class="player-photo" style="background-image: url('https://img.iol.pt/image/id/6001f1320cf289c41a8d0448/1024')"></div>
+                                    <div class="player-name">Pedro Gonçalves</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q8b" name="q8" value="Gabri Veiga">
+                                <label for="q8b">
+                                    <div class="player-photo" style="background-image: url('https://asset.skoiy.com/ojonxcycnuapxiqs/mnxlqpzridfx.jpg?w=1852&q=80')"></div>
+                                    <div class="player-name">Gabri Veiga</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 8">
+                        <h3 class="question-title">9. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q9a" name="q9" value="Geny">
+                                <label for="q9a">
+                                    <div class="player-photo" style="background-image: url('https://sportal365images.com/process/smp-images-production/abola.pt/20112023/9a83492b-7a72-4693-b94d-3d7c34f6f3c2.jpg?operations=scale(860:574)')"></div>
+                                    <div class="player-name">Geny</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q9b" name="q9" value="William Gomes">
+                                <label for="q9b">
+                                    <div class="player-photo" style="background-image: url('https://livesport-ott-images.ssl.cdn.cra.cz/r900xfq60/35932ccd-d703-47eb-9e47-2a4a56ca4f93.jpeg')"></div>
+                                    <div class="player-name">William Gomes</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 9">
+                        <h3 class="question-title">10. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q10a" name="q10" value="Trincão">
+                                <label for="q10a">
+                                    <div class="player-photo" style="background-image: url('https://tmssl.akamaized.net//images/foto/galerie/francisco-trincao-sporting-2024-1728147195-150408.jpg')"></div>
+                                    <div class="player-name">Trincão</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q10b" name="q10" value="Borja Sainz">
+                                <label for="q10b">
+                                    <div class="player-photo" style="background-image: url('https://sportal365images.com/process/smp-images-production/abola.pt/24082025/74e90512-eddf-44c7-8fb8-c2819ac2fc4f.jpeg?operations=scale(860:574)')"></div>
+                                    <div class="player-name">Borja Sainz</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 10">
+                        <h3 class="question-title">11. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q11a" name="q11" value="Luis Suárez">
+                                <label for="q11a">
+                                    <div class="player-photo" style="background-image: url('https://tmssl.akamaized.net//images/foto/galerie/luis-suarez-sporting-2025-1754399460-174077.jpg?lm=1754399473')"></div>
+                                    <div class="player-name">Luis Suárez</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q11b" name="q11" value="Samu">
+                                <label for="q11b">
+                                    <div class="player-photo" style="background-image: url('https://news.vsports.pt/wp-content/uploads/2024/12/FCP_Samu1_021224_1280-1024x576.jpg')"></div>
+                                    <div class="player-name">Samu</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question" style="--index: 11">
+                        <h3 class="question-title">12. Qual é o melhor?</h3>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q12a" name="q12" value="Rui Borges">
+                                <label for="q12a">
+                                    <div class="player-photo" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLZhmz7qLAAsY1bi6Hoj81WvIvadSbvEVM3w&s')"></div>
+                                    <div class="player-name">Rui Borges</div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q12b" name="q12" value="Farioli">
+                                <label for="q12b">
+                                    <div class="player-photo" style="background-image: url('https://tmssl.akamaized.net//images/foto/galerie/francesco-farioli-ajax-2024-25-1745999227-166922.jpg')"></div>
+                                    <div class="player-name">Farioli</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="submit-section">
+                        <button type="submit" class="submit-btn">Submeter Respostas</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h1>📊 Resultados da Sondagem</h1>
+                <p>Veja como votaram os outros participantes</p>
+            </div>
+
+            <div class="results-content" id="resultsContent">
+                <!-- Os resultados serão gerados aqui pelo JavaScript -->
+            </div>
+
+            <div class="total-votes" id="totalVotes">
+                <!-- Total de votos será mostrado aqui -->
+            </div>
+
+            <div style="text-align: center;">
+                <button class="reset-btn" onclick="resetPoll()">Votar Novamente</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estrutura para armazenar os votos
+        let pollData = {
+            votes: {},
+            totalVotes: 0
+        };
+
+        // Questões da sondagem
+        const questions = [
+            {id: 'q1', title: '1. Qual é o melhor?', options: ['Rui Silva', 'Diogo Costa']},
+            {id: 'q2', title: '2. Qual é o melhor?', options: ['Vagiannidis', 'Alberto Costa']},
+            {id: 'q3', title: '3. Qual é o melhor?', options: ['Mangas', 'Francisco Moura']},
+            {id: 'q4', title: '4. Qual é o melhor?', options: ['Debast', 'Nehuén Pérez']},
+            {id: 'q5', title: '5. Qual é o melhor?', options: ['Gonçalo Inácio', 'Bednarek']},
+            {id: 'q6', title: '6. Qual é o melhor?', options: ['Hjulmand', 'Alan Varela']},
+            {id: 'q7', title: '7. Qual é o melhor?', options: ['Kochorashvili', 'Froholdt']},
+            {id: 'q8', title: '8. Qual é o melhor?', options: ['Pedro Gonçalves', 'Gabri Veiga']},
+            {id: 'q9', title: '9. Qual é o melhor?', options: ['Geny', 'William Gomes']},
+            {id: 'q10', title: '10. Qual é o melhor?', options: ['Trincão', 'Borja Sainz']},
+            {id: 'q11', title: '11. Qual é o melhor?', options: ['Luis Suárez', 'Samu']},
+            {id: 'q12', title: '12. Qual é o melhor?', options: ['Rui Borges', 'Farioli']}
+        ];
+
+        // Carregar dados salvos
+        function loadPollData() {
+            const saved = JSON.parse(localStorage.getItem('footballPollData') || '{"votes": {}, "totalVotes": 0}');
+            pollData = saved;
+            
+            // Inicializar votos para todas as questões se não existirem
+            questions.forEach(question => {
+                if (!pollData.votes[question.id]) {
+                    pollData.votes[question.id] = {};
+                    question.options.forEach(option => {
+                        pollData.votes[question.id][option] = 0;
+                    });
+                }
+            });
+        }
+
+        // Salvar dados
+        function savePollData() {
+            localStorage.setItem('footballPollData', JSON.stringify(pollData));
+        }
+
+        // Submeter formulário
+        document.getElementById('pollForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const questions = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10', 'q11', 'q12'];
+            let allAnswered = true;
+            
+            questions.forEach(question => {
+                const radios = document.querySelectorAll(`input[name="${question}"]`);
+                const checked = Array.from(radios).some(radio => radio.checked);
+                if (!checked) {
+                    allAnswered = false;
+                }
+            });
+            
+            if (!allAnswered) {
+                alert('Por favor, responda a todas as perguntas antes de submeter.');
+                return;
+            }
+            
+            // Recolher respostas
+            const formData = new FormData(this);
+            const answers = {};
+            
+            for (let [key, value] of formData.entries()) {
+                answers[key] = value;
+                // Incrementar voto
+                pollData.votes[key][value]++;
+            }
+            
+            pollData.totalVotes++;
+            savePollData();
+            
+            // Mostrar resultados
+            showResults();
+        });
+
+        // Mostrar resultados
+        function showResults() {
+            document.getElementById('pollSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = '';
+            
+            questions.forEach((question, index) => {
+                const questionVotes = pollData.votes[question.id];
+                const totalQuestionVotes = Object.values(questionVotes).reduce((sum, votes) => sum + votes, 0);
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result-item';
+                
+                const option1 = question.options[0];
+                const option2 = question.options[1];
+                const votes1 = questionVotes[option1] || 0;
+                const votes2 = questionVotes[option2] || 0;
+                
+                const percentage1 = totalQuestionVotes > 0 ? Math.round((votes1 / totalQuestionVotes) * 100) : 0;
+                const percentage2 = totalQuestionVotes > 0 ? Math.round((votes2 / totalQuestionVotes) * 100) : 0;
+                
+                const winner1 = votes1 > votes2;
+                const winner2 = votes2 > votes1;
+                
+                resultDiv.innerHTML = `
+                    <div class="result-title">${question.title}</div>
+                    <div class="result-comparison">
+                        <div class="result-player ${winner1 ? 'winner' : ''}">
+                            <div class="result-player-name">${option1}</div>
+                            <div class="result-percentage count-animation">${percentage1}%</div>
+                            <div class="result-bar">
+                                <div class="result-bar-fill" style="width: ${percentage1}%"></div>
+                            </div>
+                        </div>
+                        <div class="result-player ${winner2 ? 'winner' : ''}">
+                            <div class="result-player-name">${option2}</div>
+                            <div class="result-percentage count-animation">${percentage2}%</div>
+                            <div class="result-bar">
+                                <div class="result-bar-fill" style="width: ${percentage2}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsContent.appendChild(resultDiv);
+            });
+            
+            // Mostrar total de votos
+            document.getElementById('totalVotes').innerHTML = `
+                <h3>📈 Total de Participantes</h3>
+                <p style="font-size: 2em; font-weight: bold; margin-top: 10px;">${pollData.totalVotes}</p>
+                <p>Obrigado pela sua participação!</p>
+            `;
+            
+            // Animar as barras
+            setTimeout(() => {
+                document.querySelectorAll('.result-bar-fill').forEach(bar => {
+                    bar.style.transition = 'width 1.5s ease';
+                });
+            }, 100);
+        }
+
+        // Resetar sondagem
+        function resetPoll() {
+            document.getElementById('pollSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            // Limpar seleções
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+            });
+            
+            // Scroll para o topo
+            window.scrollTo(0, 0);
+        }
+
+        // Adicionar efeitos visuais ao selecionar opções
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const label = this.nextElementSibling;
+                label.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    label.style.transform = '';
+                }, 200);
+            });
+        });
+
+        // Carregar dados ao inicializar
+        loadPollData();
+    </script>
+</body>
+</html>
